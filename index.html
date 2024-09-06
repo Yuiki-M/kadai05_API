@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="sample.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation app</title>
+</head>
+
+  <body>
+    <!-- まずHTML要素として骨格を作る -->
+    <textarea id="jatext" placeholder="日本語を入力してください"></textarea>
+    <br>
+    <input type="button" value="翻  訳" onclick="output()" />
+    <br>
+    <textarea id="entext"></textarea>
+
+  <script>
+    // DeepL APIの接続に必要な情報を設定
+  const API_KEY = 'ad070dc2-b75c-4f75-98e1-4fa8d4108f1b:fx';
+  const API_URL = 'https://api-free.deepl.com/v2/translate';
+  
+  //jatextというIDを持つテキストエリアからユーザーが入力した日本語テキストを取得する関数をoutput関数として定義
+  function output() {
+    const jatext = document.getElementById("jatext").value; //IDがjatextであるHTML要素をdocument(このHTML全体)から探して取得
+    
+    //APIに送るための情報(=パラメータ)をencodeURI(文字列をURLの一部として正しく送るために「URLエンコード」する関数)を使ってURL化し、contentという変数に代入
+    let content = encodeURI('auth_key=' + API_KEY + '&text=' + jatext + '&source_lang=JA&target_lang=EN');
+    //'?' は、URLに含める「クエリパラメータ」と呼ばれる追加情報の開始を示す記号のこと。クエリパラメータとは、URLに続けて送る情報（例：APIキーや翻訳するテキストなど）を指す
+    //URLにクエリパラメータを追加するときは、最初に**?**を使い、その後にパラメータの内容を続ける。
+    //そのため、下記のようにletでurlという変数を設置し、URLの基本部分である https://api-free.deepl.com/v2/translate に続いて、クエリパラメータ（APIキー、翻訳するテキスト、言語の情報）を追加するために**?**を使用。
+    let url = API_URL + '?' + content;
+  
+    fetch(url) //DeepL APIにアクセスして結果を取得する(fetch() は、APIにHTTPリクエストを送るためのJavaScriptの関数)
+      .then(function(response) {  //DeepL APIにアクセスして結果がうまく取得出来たら、APIから返ってきた「応答（レスポンス）」をresponse変数に代入して受け取る
+          if (response.ok) {
+              return response.json(); //DeepL APIにアクセスしてAPIからレスポンスを取得出来たら、それをjsonで返す
+          } else { //もし通信がうまくいかなかった場合はエラーメッセージを強制的に発生させるための構文(throw new Error())でエラーメッセージを発動
+              throw new Error("API接続がうまくいきませんでした: ");
+          }
+       
+      }).then(function(data) {  //無事にAPIから帰ってきた応答をJSON形式に変換出来たら、
+          document.getElementById("entext").value = data["translations"][0]["text"];
+      }).catch(function(error) {
+          document.getElementById("entext").value = error.message;
+         
+      });
+  };
+  
+  </script>
+  
+  </body>
+  </html>
+
+  
